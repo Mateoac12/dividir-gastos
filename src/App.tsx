@@ -1,92 +1,35 @@
-import { ChangeEvent, FormEvent, useState } from 'react'
-import Header from './components/molecules/Header'
-
-interface ErrorProps {
-  message: string
-  type: 'error' | 'success' | 'warning'
-}
+import { FormEvent } from 'react'
+import Header from './components/Header'
+import { useForm } from './hooks/useForm'
 
 function App() {
-  const [total, setTotal] = useState<string>('')
-  const [hasTotal, setHasTotal] = useState<boolean>(false)
-  const [error, setError] = useState<ErrorProps | null>(null)
-  const [productsData, setProductsData] = useState<any[]>([])
-
-  const handleSetTotal = (e: ChangeEvent<HTMLInputElement>) =>
-    setTotal(e.target.value)
+  const { inputValues, handleInputChange } = useForm({
+    total: '',
+  })
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (total.trim() === '')
-      return setError({ type: 'error', message: 'No has ingresado un numero' })
-    if (Number(total) === 0)
-      return setError({ type: 'error', message: 'No has ingresado un numero' })
-
-    setHasTotal(true)
-    setError(null)
-  }
-
-  const normalizedPrice = (strPrice: string) => {
-    const price = Number(strPrice)
-    const formatter = new Intl.NumberFormat('es-UY', {
-      style: 'currency',
-      currency: 'UYU',
-    })
-
-    const priceFormatted = formatter.format(price)
-    return priceFormatted
-  }
-
-  const handleAddProduct = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const productValue = e.target.elements.product.value
-    const priceValue = e.target.elements.price.value
-
-    // reset values
-    e.target.elements.product.value = ''
-    e.target.elements.price.value = ''
-
-    setProductsData((lastProducts) =>
-      lastProducts.concat({
-        product: productValue,
-        price: priceValue,
-      })
-    )
-
-    console.log({
-      productValue,
-      priceValue,
-    })
+    console.log(inputValues.total)
   }
 
   return (
-    <section>
+    <section className="max-w-md mx-auto">
       <Header />
-      <form onSubmit={handleSubmit}>
-        <h3>Ingrese el total de los gastos:</h3>
+      <form
+        onSubmit={handleSubmit}
+        className="box-border flex flex-col mx-4 my-4"
+      >
+        <label>Total gastado</label>
         <input
-          placeholder="1200"
+          value={inputValues.total}
+          onChange={handleInputChange}
+          className="px-4 py-2 mt-2 border outline-none border-slate-200 rounded-2xl focus:border-slate-300 focus:ring-2 focus:ring-slate-200"
+          placeholder="000"
           type="number"
-          value={total}
-          onChange={handleSetTotal}
+          min="0"
+          name="total"
         />
       </form>
-      {error && <p className={`${error.type}-message`}>{error.message}</p>}
-      {hasTotal && (
-        <>
-          <h3>El total es: {normalizedPrice(total)}</h3>
-          <form onSubmit={handleAddProduct}>
-            <h3>Ingrese el producto y su cantidad</h3>
-            <input placeholder="Pizza" name="product" />
-            <input placeholder="200" type="number" name="price" />
-            <button>Enviar</button>
-          </form>
-          {Boolean(productsData.length) &&
-            productsData.map((prod, id) => (
-              <span key={`${prod.product}-${id}`}>{prod.product}</span>
-            ))}
-        </>
-      )}
     </section>
   )
 }
